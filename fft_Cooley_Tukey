@@ -1,0 +1,42 @@
+function X = fft_Cooley_Tukey(x,...  % вектор-строка данных, complex, re
+                              flag)  % 1 - коррекция ФС, 0 - нет
+
+% Одномерное БПФ по декомпозиции образа "х" Кули - Тьюки, "radix  = 2",
+% ПРЯМОЕ разложение во временной области
+% Разработчик: студент 5 курса ФГАОУ ВО СФУ ИИФиРЭ Дранишников А.С.
+% Пример: 
+    % y = [zeros(1,28) ones(1,8) zeros(1,28)];
+    % x = fft_Cooley_Tukey(y);
+    % figure(1); subplot(2,1,2); plot(angle(x)); title('Амплитудный спектр');
+    % grid on; subplot(2,1,1); plot(abs(x)); title('Фазовый спектр'); grid on;
+
+if nargin < 2
+    flag = false;
+end
+N = length(x);                                                             % размерность вектор - строки
+pow = nextpow2(N);                                                         % число разложений образа по степени 2
+x = [x,zeros(1,(2^pow)-N)];                                                % дополнение до размерности 2^т
+X = bitrevorder(x);                                                        % перестановка (прямая) / четные - нечетные
+N = length(X);                                                             % размерность вектор - строки
+freq = 0 : (N/2 - 1);                                                      % половина частоты дискретизации
+phase = cos(2*pi/N*freq) - 1i*sin(2*pi/N*freq);                            % Характеристика блока БПФ
+for m = 1 : pow
+    L = 2^m;                                                               % уровни спуска по разложжению
+    phase_level = phase(1 : N/L : (N/2));
+    for k = 0 : L : N - L                                                  % перебор вектор-строки 
+        for n = 0 : L/2 - 1                                                % распределение на "делители"
+            one  = X(n + k + 1);
+            two = X(n + k + L/2 + 1)*phase_level(n + 1);
+            X(n + k + 1)       = one + two;
+            X(n + k + L/2 + 1) = one - two;
+        end
+    end
+end
+X = [X(N/2:end) X(1:N/2-1)];
+if flag % последовательная коррекция фазового спектра
+    for n = 1 : N
+        for k = 1 :  N
+            X(n) = X(n)*exp(-1i*2*pi*n*k/(N^2));
+        end
+    end
+end
