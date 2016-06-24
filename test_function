@@ -1,0 +1,54 @@
+function test_function
+% Тестирование написанных функций на предмет быстродействия
+% Разработчик: студент 5 курса ФГАОУ ВО СФУ ИИФиРЭ Дранишников А.С.
+
+y = [zeros(1,252) ones(1,8) zeros(1,252)]; % Действительный образ
+% y = y1.*exp(1i*zeros(1,64));             % Комплексный образ
+num = 2000; % Число усреднений времени выполнения
+%% Тест быстродействия "fft_Cooley_Tukey"
+for var = 1 : num
+    tic;
+    x = fft_Cooley_Tukey(y,1);
+    t1(var) = toc;
+end
+t1 = sum(t1)/num;
+figure(1); subplot(2,1,2); plot(angle(x), 'linewidth',2); title('Фазовый спектр');
+grid on; subplot(2,1,1); plot(abs(x), 'linewidth',2); title('Амплитудный спектр'); grid on;
+disp(strcat('Функция fft_Cooley_Tukey:',num2str(t1),'c'))
+%% Тест быстродействия "fft"
+for var = 1 : num
+    tic;
+    X = fft(y); N = numel(y);
+    X = [X(N/2:end) X(1:N/2-1)];
+    for n = 1 : N
+        for k = 1 :  N
+            X(n) = X(n)*exp(-1i*2*pi*n*k/(N^2));
+        end
+    end
+    t2(var) = toc;
+end
+t2 = sum(t2)/num;
+figure(2); subplot(2,1,2); plot(angle(X), 'linewidth',2); title('Фазовый спектр');
+grid on; subplot(2,1,1); plot(abs(X), 'linewidth',2); title('Амплитудный спектр'); grid on;
+disp(strcat('Функция fft:',num2str(t2),'c'))
+%% Тест быстродействия "fft_radix2"
+for var = 1 : num
+    tic;
+    X = fft_radix2(y, 1);
+    t3(var) = toc;
+end
+t3 = sum(t3)/num;
+figure(3); subplot(2,1,2); plot(angle(X), 'linewidth',2); title('Фазовый спектр');
+grid on; subplot(2,1,1); plot(abs(X), 'linewidth',2); title('Амплитудный спектр'); grid on;
+disp(strcat('Функция fft_radix2: ',num2str(t3),'c'))
+%% Тест быстродействия "fft_radix4"
+for var = 1 : num
+    tic;
+    X = fft_radix4(y);
+    t4(var) = toc;
+end
+t4 = sum(t4)/num;
+figure(3); subplot(2,1,2); plot(angle(X), 'linewidth',2); title('Фазовый спектр');
+grid on; subplot(2,1,1); plot(abs(X), 'linewidth',2); title('Амплитудный спектр'); grid on;
+disp(strcat('Функция fft_radix4: ',num2str(t4),'c'))
+end
